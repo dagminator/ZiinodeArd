@@ -59,11 +59,9 @@ byte out_s;
 
 boolean hasAck=false;
 
-uint32_t postingInterval = 1000;
-
 void  savePostingInt(){
 	write_eeprom_byte(14, 55);
-	EEPROM_writeAnything(15,postingInterval);
+	EEPROM_writeAnything(15,zn.postingInterval);
 }
 
 void saveInType(){
@@ -79,7 +77,7 @@ void  saveTrig(){
 void readConf(){
   //total 4+1
   if(read_eeprom_byte(14)==55){
-	  EEPROM_readAnything(15,postingInterval);
+	  EEPROM_readAnything(15,zn.postingInterval);
   }
 
   if(read_eeprom_byte(19)==55){
@@ -105,7 +103,7 @@ void sendTrigAll(){
 
 void sendBinTrap(){
 	zn.write(TRAP);
-	zn.writeInt(17);
+	zn.writeInt((READ_COUNT * 2) + 1);
     for(int i=0;i<READ_COUNT;i++){
     	zn.writeIntE(readings[i]);
 #if DEBUG
@@ -138,7 +136,7 @@ void cack(){
 
 void dataReceived(byte cmd, ByteBuffer *buf){
 	if(cmd==CMD_POSTING_INTERVAL){
-		postingInterval = buf->getUInt32();
+		zn.postingInterval = buf->getUInt32();
 		savePostingInt();
 	}else if(cmd==CMD_TRIG_OUT){
 		byte idx = buf->get();
@@ -279,7 +277,7 @@ void loop() {
 //		wdt_reset();
 //	}
 	zn.ether_loop();
-	if((millis() - lastConnectionTime > postingInterval)) {
+	if((millis() - lastConnectionTime > zn.postingInterval)) {
 		read_inputs();
 		trigger_out();
 		if(zn.checkConn()){
@@ -311,4 +309,5 @@ void setup() {
   read_inputs();
   trigger_out();
 }
+
 

@@ -1,13 +1,3 @@
-/**************************************************************
- * ZiinodeArd is a library for the ESP8266/Arduino platform
- * (https://github.com/esp8266/Arduino) to enable easy 
- * configuration and reconfiguration of WiFi credentials and 
- * store them in EEPROM.
- * inspired by http://www.esp8266.com/viewtopic.php?f=29&t=2520
- * https://github.com/chriscook8/esp-arduino-apboot 
- * Built by AlexT https://github.com/tzapu
- * Licensed under MIT license
- **************************************************************/
 
 #ifndef ZiinodeArd_h
 #define ZiinodeArd_h

@@ -132,11 +132,17 @@ const uint16_t kNetworkDelay = 100;
 
 //const char *apitype = APITYPE;
 //const char *apikey = APIKEY;
+unsigned long timeoutStart;
+byte cmd=0;
+int size=0;
 
 void ZiinodeArd::stop(){
 #if DEBUG
 	 Serial.println("stop..");
 #endif
+	_clientBuffer->clear();
+	cmd=0;
+	size=0;
 	hasAddr = false;
 	_client.stop();
 }
@@ -169,9 +175,6 @@ void ZiinodeArd::setDevId(char* did) {
   write_eeprom_byte(0, 55);
   write_eeprom_array(1,_devid,7);
 }
-
-byte cmd=0;
-int size=0;
 
 void ZiinodeArd::resetDevId() {
 #if DEBUG
@@ -236,7 +239,7 @@ void ZiinodeArd::ether_loop() {
 				#endif
 
 		        // Now we've got to the body, so we can print it out
-		        unsigned long timeoutStart = millis();
+		        timeoutStart = millis();
 		        // Whilst we haven't timed out & haven't reached the end of the body
 		        int rec=0;
 
@@ -352,12 +355,29 @@ void ZiinodeArd::ether_loop() {
 			}
 			if(cmd!=0 && _client.available() > 1 && size==0 && _clientBuffer->getSize()==0){
 				size = getInt();
+				timeoutStart = millis();
+#if DEBUG
+			Serial.print("av:");
+			Serial.print(_client.available());
+			Serial.print(" size:");
+			Serial.println(size);
+#endif
 			}
-			while(size>0 && _client.available() > 0  && _clientBuffer->getCapacity()>0) {
+			while(size>0 && _client.available() > 0  && _clientBuffer->getCapacity()>0 && size>0 && ((millis() - timeoutStart) < 2000)) {
 				_clientBuffer->put(_client.read());
 				size--;
 			}
-			if(_clientBuffer->getSize()>0 && size==0){
+
+			if(size>0 && ((millis() - timeoutStart) > 2000)){
+#if DEBUG
+			Serial.print("tiemout:");
+			Serial.println(cmd);
+#endif
+				cmd=0;
+				size=0;
+				_clientBuffer->clear();
+			}
+			if(cmd!=0 && _clientBuffer->getSize()>0 && size==0){
 				//packet ready
 #if DEBUG
 			Serial.print("packet:");

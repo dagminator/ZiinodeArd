@@ -100,7 +100,7 @@ boolean ZiinodeArd::checkConn(){
 	if(!hasAddr){
 		return false;
 	}
-	if(_client.connected() && ul_LastComm>0 && (millis() - ul_LastComm) > (postingInterval*3+10000)){
+	if(!_client.connected() || (ul_LastComm!=0 && (millis() - ul_LastComm) > ((postingInterval*3)+5000))){
 	 stop();
 	}
 	return hasAddr;

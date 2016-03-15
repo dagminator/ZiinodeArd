@@ -54,6 +54,18 @@ void ZiinodeArd::writeUint32(uint32_t in){
 char* log_buf;
 char lb[255];
 
+void ZiinodeArd::writeInt64(int64_t in){
+    byte *pointer = (byte *)&in;
+    _client.write(pointer[7]);
+    _client.write(pointer[6]);
+    _client.write(pointer[5]);
+    _client.write(pointer[4]);
+    _client.write(pointer[3]);
+    _client.write(pointer[2]);
+    _client.write(pointer[1]);
+    _client.write(pointer[0]);
+}
+
 //ANNOTATION
 void ZiinodeArd::writeAnnot(int code, const char *fmt, ...){
 	if(!log_buf){
@@ -65,7 +77,8 @@ void ZiinodeArd::writeAnnot(int code, const char *fmt, ...){
 	va_end (va);
 	if(_client.connected()){
 		_client.write(ANNOTATION);
-		writeInt(size+4);
+		writeInt(size+4+8);
+		writeInt64(0);
 		writeInt(code);
 		writeInt(size);
 		_client.write((const uint8_t *)log_buf,size);
@@ -82,7 +95,8 @@ void ZiinodeArd::writeLog(int code, const char *fmt, ...){
 	va_end (va);
 	if(_client.connected()){
 		_client.write(LOG);
-		writeInt(size+4);
+		writeInt(size+4+8);
+		writeInt64(0);
 		writeInt(code);
 		writeInt(size);
 		_client.write((const uint8_t *)log_buf,size);

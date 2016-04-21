@@ -192,20 +192,25 @@ void dataReceived(byte cmd, ByteBuffer *buf){
 }
 
 
-void setPin(uint8_t i){
-	uint8_t pin = out_pins[trigger[i].out];
-	uint8_t val = trigger[i].out_dir;
-	if(digitalRead(pin)!=val){
-		zn.writeLog(1,"setPin:%i val:%i",pin,val);
-		zn.writeAnnot(1,"Output state changed #:%i state:%i",i,val);
-		digitalWrite(pin,val);
-	}
-	if(val){
-		bitSet(out_s, trigger[i].out);
-	}else{
-		bitClear(out_s, trigger[i].out);
-	}
+char oper[3] = {'=','<','>'};
 
+void setPin(uint8_t i){
+	if(i<OUT_COUNT){
+		uint8_t pin = out_pins[trigger[i].out];
+		uint8_t val = trigger[i].out_dir;
+		if(digitalRead(pin)!=val){
+			zn.writeLog(1,"setPin:%i val:%i",pin,val);
+			zn.writeAnnot(i,"Output changed #:%i state:%i on value:%i",trigger[i].out,val,trigger[i].val);
+			digitalWrite(pin,val);
+		}
+		if(val){
+			bitSet(out_s, trigger[i].out);
+		}else{
+			bitClear(out_s, trigger[i].out);
+		}
+	}else{
+		zn.writeAnnot(i,"Trigger #:%i on value:%i oper:%c",i,trigger[i].val,oper[trigger[i].oper]);
+	}
 }
 
 void trigger_out() {

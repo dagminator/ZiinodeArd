@@ -141,22 +141,30 @@ void dataReceived(byte cmd, ByteBuffer *buf){
 	}else if(cmd==CMD_TRIG_OUT){
 		byte idx = buf->get();
 		uint8_t val = buf->get();
-		uint8_t pin = out_pins[idx];
-		uint8_t cur = digitalRead(pin);
-		zn.writeLog(1,"setPin #:%i val:%i  idx:%i cur%i",pin,val, idx, cur);
-		if(cur!=val){
-			digitalWrite(pin,val);
-			if(val){
-				bitSet(out_s, idx);
-			}else{
-				bitClear(out_s, idx);
+		if(idx<OUT_COUNT){
+			uint8_t pin = out_pins[idx];
+			uint8_t cur = digitalRead(pin);
+			zn.writeLog(0,1,"setPin #:%i val:%i  idx:%i cur%i",pin,val, idx, cur);
+			if(cur!=val){
+				digitalWrite(pin,val);
+				if(val){
+					bitSet(out_s, idx);
+				}else{
+					bitClear(out_s, idx);
+				}
 			}
+		}else{
+			zn.writeLog(0,1,"ERR out idx:%i max:%i",idx,OUT_COUNT);
 		}
 	}else if(cmd==CMD_INT_TYPE){
 		byte idx = buf->get();
-		in_type[idx]=buf->get();
-		saveInType();
-		zn.writeLog(1,"in type idx:%i val:%i",idx,in_type[idx]);
+		if(idx<IN_COUNT){
+			in_type[idx]=buf->get();
+			saveInType();
+			zn.writeLog(0,1,"in type idx:%i val:%i",idx,in_type[idx]);
+		}else{
+			zn.writeLog(0,1,"ERR in type idx:%i max:%i",idx,IN_COUNT);
+		}
 	}else if(cmd==CMD_TRIG){
 		//typedef struct{
 		//	uint8_t input;
@@ -166,13 +174,17 @@ void dataReceived(byte cmd, ByteBuffer *buf){
 		//	int val;
 		//} trigger_t;//size 6
 		byte idx = buf->get();
-		trigger[idx].input = buf->get();
-		trigger[idx].oper = buf->get();
-		trigger[idx].out = buf->get();
-		trigger[idx].out_dir = buf->get();
-		trigger[idx].val = buf->getInt();
-	    saveTrig();
-		zn.writeLog(1,"trig idx:%i input:%i oper:%i out:%i out_dir:%i val:%i",idx,trigger[idx].input,trigger[idx].oper ,trigger[idx].out,trigger[idx].out_dir,trigger[idx].val);
+		if(idx<TRIG_COUNT){
+			trigger[idx].input = buf->get();
+			trigger[idx].oper = buf->get();
+			trigger[idx].out = buf->get();
+			trigger[idx].out_dir = buf->get();
+			trigger[idx].val = buf->getInt();
+			saveTrig();
+			zn.writeLog(0,1,"trig idx:%i input:%i oper:%i out:%i out_dir:%i val:%i",idx,trigger[idx].input,trigger[idx].oper ,trigger[idx].out,trigger[idx].out_dir,trigger[idx].val);
+		}else{
+			zn.writeLog(0,1,"ERR ttrig idx:%i max:%i",idx,TRIG_COUNT);
+		}
 	}else if(cmd==CMD_TRIG_ALL){
 		for(int idx=0;idx<TRIG_COUNT;idx++){
 			trigger[idx].input = buf->get();
@@ -199,8 +211,8 @@ void setPin(uint8_t i){
 		uint8_t pin = out_pins[trigger[i].out];
 		uint8_t val = trigger[i].out_dir;
 		if(digitalRead(pin)!=val){
-			zn.writeLog(1,"setPin:%i val:%i",pin,val);
-			zn.writeAnnot(i,"Output changed #:%i state:%i on value:%i",trigger[i].out,val,trigger[i].val);
+			zn.writeLog(0,1,"setPin:%i val:%i",pin,val);
+			zn.sendEvent(0,i,"Output changed #:%i state:%i on value:%i",trigger[i].out,val,trigger[i].val);
 			digitalWrite(pin,val);
 		}
 		if(val){
@@ -209,7 +221,7 @@ void setPin(uint8_t i){
 			bitClear(out_s, trigger[i].out);
 		}
 	}else{
-		zn.writeAnnot(i,"Trigger #:%i on value:%i oper:%c",i,trigger[i].val,oper[trigger[i].oper]);
+		zn.sendEvent(0,i,"Trigger #:%i on %i %c %i",i,trigger[i].val,oper[trigger[i].oper], readings[trigger[i].input]);
 	}
 }
 
@@ -267,7 +279,7 @@ void read_inputs() {
 		}else if(in_type[i]==VOLTAGE){
 			readings[i * 2]  = analogRead(in_pin[i]);
 #if DEBUG
-	zn.writeLog(1,"voltage:%i voltage:%i ",in_pin[i], readings[i * 2]);
+	zn.writeLog(0,1,"voltage:%i voltage:%i ",in_pin[i], readings[i * 2]);
 #endif
 		}
 	}
@@ -314,5 +326,4 @@ void setup() {
   read_inputs();
   trigger_out();
 }
-
 

@@ -87,8 +87,8 @@ public:
     void    writeIntE(int in);
     void    writeUint32(uint32_t in);
     void 	writeInt64(int64_t in);
-    void    writeAnnot(int code, const char *fmt, ...);
-    void    writeLog(int code, const char *fmt, ...);
+    void    sendEvent(int64_t time, int code, const char *fmt, ...);
+    void    writeLog(int64_t time, int code, const char *fmt, ...);
     void    writeBody(const uint8_t *buf, int size);
     void 	sendNet();
     void    sendInterval();

@@ -67,7 +67,7 @@ void ZiinodeArd::writeInt64(int64_t in){
 }
 
 //ANNOTATION
-void ZiinodeArd::writeAnnot(int code, const char *fmt, ...){
+void ZiinodeArd::sendEvent(int64_t time, int code, const char *fmt, ...){
 	if(!log_buf){
 		log_buf = lb;
 	}
@@ -77,15 +77,15 @@ void ZiinodeArd::writeAnnot(int code, const char *fmt, ...){
 	va_end (va);
 	if(_client.connected()){
 		_client.write(ANNOTATION);
-		writeInt(size+4+8);
-		writeInt64(0);
+		writeInt(size+2+8);
+		writeInt64(time);
 		writeInt(code);
-		writeInt(size);
+		//writeInt(size);
 		_client.write((const uint8_t *)log_buf,size);
 	}
 }
 
-void ZiinodeArd::writeLog(int code, const char *fmt, ...){
+void ZiinodeArd::writeLog(int64_t time, int code, const char *fmt, ...){
 	if(!log_buf){
 		log_buf = lb;
 	}
@@ -95,10 +95,10 @@ void ZiinodeArd::writeLog(int code, const char *fmt, ...){
 	va_end (va);
 	if(_client.connected()){
 		_client.write(LOG);
-		writeInt(size+4+8);
-		writeInt64(0);
+		writeInt(size+2+8);
+		writeInt64(time);
 		writeInt(code);
-		writeInt(size);
+		//writeInt(size);
 		_client.write((const uint8_t *)log_buf,size);
 	}
 }
